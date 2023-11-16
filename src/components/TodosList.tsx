@@ -27,6 +27,9 @@ const TodosList = ({}) => {
   const { mutate: toggleActive } = api.todo.toggleActive.useMutation({
     onSuccess: () => refetch(),
   });
+  const { mutate: toggleCompleted } = api.todo.toggleComplete.useMutation({
+    onSuccess: () => refetch(),
+  });
 
   const { data: todos, isLoading, refetch } = api.todo.getAll.useQuery();
 
@@ -59,7 +62,14 @@ const TodosList = ({}) => {
                   toggleActive({ id: todo.id, active: !todo.active })
                 }
               ></button>
-              <p>{todo.title}</p>
+              <button
+                className={`${todo.completed ? "line-through" : ""}`}
+                onClick={() =>
+                  toggleCompleted({ id: todo.id, completed: !todo.completed })
+                }
+              >
+                {todo.title}
+              </button>
               <button
                 onClick={() => deleteTodo({ id: todo.id })}
                 className="rounded-full bg-red-400 p-2"

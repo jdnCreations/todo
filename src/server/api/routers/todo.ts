@@ -50,4 +50,17 @@ export const todoRouter = createTRPCRouter({
         },
       });
     }),
+  toggleComplete: protectedProcedure
+    .input(z.object({ id: z.string(), completed: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.todo.update({
+        where: {
+          id: input.id,
+          userId: ctx.session.user.id,
+        },
+        data: {
+          completed: input.completed,
+        },
+      });
+    }),
 });
