@@ -207,11 +207,11 @@ const TodosList = ({}) => {
                 aria-label="set active"
                 className={`h-6 w-6 min-w-[24px] ${
                   todo.active
-                    ? "from-grad-blue to-grad-purple bg-gradient-to-br"
+                    ? "bg-gradient-to-br from-grad-blue to-grad-purple"
                     : "bg-transparent"
                 } ${
                   isDark ? "border-seperator-dark" : "border-seperator-light"
-                } hover:border-bright-blue grid place-items-center rounded-full border`}
+                } grid place-items-center rounded-full border hover:border-bright-blue`}
                 onClick={() =>
                   toggleActive({ id: todo.id, active: !todo.active })
                 }
@@ -278,11 +278,11 @@ const TodosList = ({}) => {
                   aria-label="set active"
                   className={`h-6 w-6 min-w-[24px] ${
                     todo.active
-                      ? "from-grad-blue to-grad-purple bg-gradient-to-br"
+                      ? "bg-gradient-to-br from-grad-blue to-grad-purple"
                       : "bg-transparent"
                   } ${
                     isDark ? "border-seperator-dark" : "border-seperator-light"
-                  } hover:border-bright-blue grid place-items-center rounded-full border`}
+                  } grid place-items-center rounded-full border hover:border-bright-blue`}
                   onClick={() =>
                     toggleActive({ id: todo.id, active: !todo.active })
                   }
@@ -352,7 +352,7 @@ const TodosList = ({}) => {
                   filterType === undefined ? "text-bright-blue" : ""
                 } ${
                   isDark ? "hover:text-white" : "hover:text-todotxt-light"
-                }  hover:text-white`}
+                }  `}
                 onClick={() => filter("all")}
               >
                 All
@@ -396,7 +396,7 @@ const TodosList = ({}) => {
         <button
           className={`${filterType === undefined ? "text-bright-blue" : ""} ${
             isDark ? "hover:text-white" : "hover:text-todotxt-light"
-          }  hover:text-white`}
+          }  `}
           onClick={() => filter("all")}
         >
           All
