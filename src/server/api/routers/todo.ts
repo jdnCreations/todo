@@ -63,4 +63,13 @@ export const todoRouter = createTRPCRouter({
         },
       });
     }),
+
+  deleteCompleted: protectedProcedure.mutation(({ ctx }) => {
+    return ctx.db.todo.deleteMany({
+      where: {
+        userId: ctx.session.user.id,
+        completed: true,
+      },
+    });
+  }),
 });
