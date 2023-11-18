@@ -17,7 +17,7 @@ const TodosList = ({}) => {
   );
   const [filterType, setFilterType] = useState<Filter | undefined>(undefined);
 
-  const width = window.innerWidth;
+  const { data: todos, isLoading, refetch } = api.todo.getAll.useQuery();
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -31,7 +31,7 @@ const TodosList = ({}) => {
 
   const { register, handleSubmit, reset } = useForm<Inputs>();
 
-  const { mutate } = api.todo.create.useMutation({
+  const { mutate: createTodo } = api.todo.create.useMutation({
     onSuccess: () => refetch(),
   });
 
@@ -43,14 +43,23 @@ const TodosList = ({}) => {
     onSuccess: () => refetch(),
   });
   const { mutate: toggleCompleted } = api.todo.toggleComplete.useMutation({
-    onSuccess: () => refetch(),
+    onSuccess: async () => {
+      await refetch();
+
+      console.log("Todos after refetch: ", todos);
+      if (filterType) {
+        console.log("filtering");
+        setFilteredTodos(todos?.filter((todo) => todo.completed));
+        console.log("Filtered todos:", filteredTodos);
+      }
+    },
   });
 
   const { mutate: clearComplete } = api.todo.deleteCompleted.useMutation({
-    onSuccess: () => refetch(),
+    onSuccess: async () => {
+      await refetch();
+    },
   });
-
-  const { data: todos, isLoading, refetch } = api.todo.getAll.useQuery();
 
   function filter(type: Filter) {
     if (type === "all") {
@@ -66,7 +75,8 @@ const TodosList = ({}) => {
   }
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    mutate({ title: data.title });
+    createTodo({ title: data.title });
+
     reset();
   };
 
@@ -190,36 +200,62 @@ const TodosList = ({}) => {
             <div
               key={todo.id}
               className={`${
-                isDark ? "bg-todos-dark text-todotxt-light" : "bg-todos-light"
-              } flex w-auto items-center justify-between gap-2 overflow-hidden px-[24px] py-[20px]`}
+                isDark ? "bg-todos-dark" : "bg-todos-light"
+              } group flex w-auto items-center justify-between gap-3 overflow-hidden px-5 py-4 text-[12px] sm:gap-6 sm:px-[24px] sm:py-[20px] sm:text-[18px]`}
             >
               <button
-                className={`h-4 w-4 ${
-                  todo.active ? "bg-green-700" : "bg-red-400"
-                } `}
+                aria-label="set active"
+                className={`h-6 w-6 min-w-[24px] ${
+                  todo.active
+                    ? "from-grad-blue to-grad-purple bg-gradient-to-br"
+                    : "bg-transparent"
+                } ${
+                  isDark ? "border-seperator-dark" : "border-seperator-light"
+                } hover:border-bright-blue grid place-items-center rounded-full border`}
                 onClick={() =>
                   toggleActive({ id: todo.id, active: !todo.active })
                 }
-              ></button>
+              >
+                {todo.active ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="9">
+                    <path
+                      fill="none"
+                      stroke="#FFF"
+                      strokeWidth="2"
+                      d="M1 4.304L3.696 7l6-6"
+                    />
+                  </svg>
+                ) : null}
+              </button>
               <button
+                aria-label="set completed"
                 className={`${
                   todo.completed
-                    ? "text-todotxt-dark-complete line-through"
+                    ? isDark
+                      ? "text-todotxt-dark-complete line-through"
+                      : "text-todotxt-light-complete line-through"
                     : isDark
-                      ? "text-todotxt-light"
-                      : "text-todotxt-dark"
-                } w-full self-start`}
-                onClick={() =>
-                  toggleCompleted({ id: todo.id, completed: !todo.completed })
+                      ? "text-todotxt-dark"
+                      : "text-todotxt-light"
+                } w-full text-left`}
+                onClick={
+                  () =>
+                    toggleCompleted({ id: todo.id, completed: !todo.completed })
+                  // need to update filtered todos using refetched todos
                 }
               >
                 {todo.title}
               </button>
               <button
+                aria-label="delete"
+                className=" group-hover:block  md:hidden"
                 onClick={() => deleteTodo({ id: todo.id })}
-                className="rounded-full bg-red-400 p-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-[12px] sm:w-[18px]"
+                  viewBox="0 0 18 18"
+                >
                   <path
                     fill="#494C6B"
                     fillRule="evenodd"
@@ -314,7 +350,9 @@ const TodosList = ({}) => {
               <button
                 className={`${
                   filterType === undefined ? "text-bright-blue" : ""
-                } hover:text-white`}
+                } ${
+                  isDark ? "hover:text-white" : "hover:text-todotxt-light"
+                }  hover:text-white`}
                 onClick={() => filter("all")}
               >
                 All
@@ -322,7 +360,7 @@ const TodosList = ({}) => {
               <button
                 className={`${
                   filterType === "active" ? "text-bright-blue" : ""
-                } hover:text-white`}
+                }  ${isDark ? "hover:text-white" : "hover:text-todotxt-light"}`}
                 onClick={() => filter("active")}
               >
                 Active
@@ -330,14 +368,16 @@ const TodosList = ({}) => {
               <button
                 className={`${
                   filterType === "completed" ? "text-bright-blue" : ""
-                } hover:text-white`}
+                } ${isDark ? "hover:text-white" : "hover:text-todotxt-light"}`}
                 onClick={() => filter("completed")}
               >
                 Completed
               </button>
             </div>
             <button
-              className="text-[14px] hover:text-white"
+              className={`${
+                isDark ? "hover:text-white" : "hover:text-todotxt-light"
+              } text-[14px]`}
               onClick={() => clearComplete()}
             >
               Clear Completed
@@ -354,25 +394,25 @@ const TodosList = ({}) => {
         } flex h-[48px] w-full items-center justify-center gap-4 rounded-lg text-[14px] font-bold shadow-lg sm:hidden`}
       >
         <button
-          className={`${
-            filterType === undefined ? "text-bright-blue" : ""
-          } hover:text-white`}
+          className={`${filterType === undefined ? "text-bright-blue" : ""} ${
+            isDark ? "hover:text-white" : "hover:text-todotxt-light"
+          }  hover:text-white`}
           onClick={() => filter("all")}
         >
           All
         </button>
         <button
-          className={`${
-            filterType === "active" ? "text-bright-blue" : ""
-          } hover:text-white`}
+          className={`${filterType === "active" ? "text-bright-blue" : ""}  ${
+            isDark ? "hover:text-white" : "hover:text-todotxt-light"
+          }`}
           onClick={() => filter("active")}
         >
           Active
         </button>
         <button
-          className={`${
-            filterType === "completed" ? "text-bright-blue" : ""
-          } hover:text-white`}
+          className={`${filterType === "completed" ? "text-bright-blue" : ""} ${
+            isDark ? "hover:text-white" : "hover:text-todotxt-light"
+          }`}
           onClick={() => filter("completed")}
         >
           Completed
